@@ -26,6 +26,8 @@
     "@bryntum/demo-resources": "1.1.0",
     "@bryntum/gantt": "npm:@bryntum/gantt-trial@4.3.6",
     "@bryntum/gantt-react": "4.3.6",
+    "@bryntum/schedulerpro": "npm:@bryntum/schedulerpro-trial@4.3.6",
+    "@bryntum/schedulerpro-react": "4.3.6",
     "@types/node": "12.6.8",
     "@types/react-dom": "16.8.5",
     "cross-env": "~7.0.2",
