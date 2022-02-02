@@ -43,6 +43,7 @@ class LocationColumn extends Column {
 
 const App: FunctionComponent = () => {
     const ganttRef = React.createRef();
+    const [zoomLevel, setZoomLevel] = React.useState(0)
     ColumnStore.registerColumnType(LocationColumn);
     // PresetManager.add(presets);
 
@@ -146,6 +147,14 @@ const App: FunctionComponent = () => {
         }
     }
 
+    const disableZoomInButton = () => {
+        return zoomLevel === presets.length - 1
+    }
+
+    const disableZoomOutButton = () => {
+        return zoomLevel === 0
+    }
+
     const tbar: Partial<ToolbarConfig> = {
         //type: 'buttonGroup',
         items: [
@@ -153,22 +162,33 @@ const App: FunctionComponent = () => {
                 ref: 'zoomInButton',
                 icon: 'b-fa b-fa-search-plus',
                 tooltip: 'Zoom in',
-                onAction: () => (ganttRef.current as any).instance.zoomIn()
+                // disabled: disableZoomInButton(),
+                onAction: () => {
+                    (ganttRef.current as any).instance.zoomIn()
+                    console.log((ganttRef.current as any)?.instance.zoomLevel)
+                    // setZoomLevel((ganttRef.current as any)?.instance.zoomLevel)
+                }
             },
             {
                 ref: 'zoomOutButton',
                 icon: 'b-fa b-fa-search-minus',
                 tooltip: 'Zoom out',
-                onAction: () => (ganttRef.current as any).instance.zoomOut()
+                // disabled: disableZoomOutButton(),
+                onAction: () => {
+                    (ganttRef.current as any).instance.zoomOut()
+                    console.log((ganttRef.current as any)?.instance.zoomLevel)
+                    // setZoomLevel((ganttRef.current as any)?.instance.zoomLevel)
+                }
             },
             {
                 ref: 'zoomToFitButton',
                 icon: 'b-fa b-fa-compress-arrows-alt',
-                tooltip: 'Zoom to fit',
-                onAction: () => (ganttRef.current as any).instance.zoomToFit({
-                    leftMargin: 50,
-                    rightMargin: 50
-                })
+                tooltip: 'Zoom to reset',
+                onAction: () => {
+                    (ganttRef.current as any).instance.zoomTo('hourAndDay1')
+                    console.log((ganttRef.current as any)?.instance.zoomLevel)
+                    // setZoomLevel((ganttRef.current as any)?.instance.zoomLevel)
+                }
             },
         ]
     };
