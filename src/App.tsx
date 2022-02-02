@@ -4,11 +4,22 @@
 import React, { Fragment, FunctionComponent } from 'react';
 
 import { BryntumDemoHeader, BryntumThemeCombo, BryntumGanttBase, BryntumToolbar } from '@bryntum/gantt-react';
-import { ganttConfig } from './AppConfig';
 import { MySchedulerPro } from './MySchedulerPro';
 import './App.scss';
-import { Column, ColumnConfig, ColumnStore, ScheduleTooltipConfig, TaskEditConfig, TaskMenuConfig, TaskTooltipConfig, TimeRangesConfig, ToolbarConfig, ViewPreset } from '@bryntum/gantt/gantt.umd.js';
-import { PresetManager, ProjectModel, ViewPresetConfig } from '@bryntum/gantt';
+import { Column, ColumnConfig, ColumnStore, NonWorkingTimeConfig, ProjectLinesConfig, ScheduleTooltipConfig, StringHelper, TaskEditConfig, TaskMenuConfig, TaskModel, TaskStore, TaskTooltipConfig, TimeRangesConfig, ToolbarConfig, ViewPreset } from '@bryntum/gantt/gantt.umd.js';
+import { DateHelper, PresetManager, ProjectModel, ViewPresetConfig } from '@bryntum/gantt';
+// import { data } from "./data";
+
+class MyTaskModel extends TaskModel {
+
+    static get fields() {
+        return [
+            { name: 'location' },
+            { name: 'demandCategory' },
+            { name: 'startDateTime', type: 'date' }
+        ]
+    }
+}
 
 class LocationColumn extends Column {
     // unique alias of the column
@@ -42,6 +53,23 @@ class LocationColumn extends Column {
     }
 }
 
+interface MyTaskModelType extends TaskModel {
+    location: string;
+    demandCategory: string;
+    startDateTime: string;
+}
+
+interface TaskToolTipData {
+    taskRecord: MyTaskModelType;
+    startClockHtml: String;
+    endClockHtml: String;
+}
+
+interface CellClickData {
+    record: MyTaskModelType;
+    }
+
+
 const App: FunctionComponent = () => {
     const ganttRef = React.createRef();
     const [zoomLevel, setZoomLevel] = React.useState(0)
@@ -51,8 +79,8 @@ const App: FunctionComponent = () => {
     const presets: Partial<ViewPresetConfig>[] = [
         {
             id: 'hourAndDay2',
-            tickWidth: 50,                  // Time column width in horizontal mode
-            tickHeight: 50,                 // Time column height in vertical mode
+            tickWidth: 60,                  // Time column width in horizontal mode
+            tickHeight: 80,                 // Time column height in vertical mode
             displayDateFormat: 'HH:mm',     // Controls how dates will be displayed in tooltips etc
 
             shiftIncrement: 1,              // Controls how much time to skip when calling shiftNext and shiftPrevious.
@@ -81,7 +109,7 @@ const App: FunctionComponent = () => {
             // base: 'hourAndDay',
             id: 'hourAndDay1',
             tickWidth: 50,
-            tickHeight: 50,
+            tickHeight: 80,
             displayDateFormat: 'HH:mm',
 
             defaultSpan: 1,
@@ -109,6 +137,22 @@ const App: FunctionComponent = () => {
         }
     ];
 
+    const addTask = () => {
+        const gantt = (ganttRef.current as any).instance;
+
+        const startDate = new Date("2022-01-14T20:15:00");
+        const endDate = new Date("2022-01-15T20:15:00");
+        console.log(startDate)
+
+        gantt.eventStore.add({
+            startDate: startDate,
+            endDate: endDate,
+            location: "Location 1",
+            name: 'Location 1',
+        });
+
+    };
+
     // https://www.bryntum.com/docs/gantt/api/Gantt/feature/TaskMenu
     const taskMenuFeature: Partial<TaskMenuConfig> = {
         // custom items of task menu context
@@ -116,17 +160,18 @@ const App: FunctionComponent = () => {
             addDemand: {
                 text: 'Add Demand',
                 onItem(context: object) {
-                    alert("Add Demand");
+                    alert("Add Demand with location: " + ((context as any).taskRecord as MyTaskModelType).location);
                     // (context as any).contextRecord.property = false;
+                    addTask();
                 },
-                disabled: true,
                 weight: 500                         // weights determine the index of the options
             },
             edit: {
                 text: 'Edit',
                 icon: 'b-fa b-fa-fw b-fa-pencil',
+                disabled: true,
                 onItem(context: object) {
-                    alert("Edit demand");
+                    alert("Edit demand with location: " + ((context as any).taskRecord as MyTaskModelType).location);
                 },
                 weight: 510
             },
@@ -134,7 +179,7 @@ const App: FunctionComponent = () => {
                 text: 'Delete',
                 icon: 'b-fa b-fa-fw b-fa-pencil',
                 onItem(context: object) {
-                    alert("Delete demand");
+                    alert("Delete demand with location: " + ((context as any).taskRecord as MyTaskModelType).location);
                 },
                 weight: 520
             },
@@ -196,20 +241,25 @@ const App: FunctionComponent = () => {
 
     const taskTooltipFeature: Partial<TaskTooltipConfig> = {
         // check if we can have access to custom fields e.g. location
-        template: () => "tooltip"
+        // integrate our tooltip? ==> https://www.bryntum.com/forum/viewtopic.php?f=44&t=13554
+        template: (data: TaskToolTipData) => {
+            const task: MyTaskModelType = data.taskRecord
 
-        // (""data: SimpleEventEdit) => (`<dl>
-        //     <dt>Assigned to:</dt>
-        //     <dd>
-        //          ${StringHelper.encodeHtml(data.eventRecord.resource.name)}
-        //     </dd>
-        //     <dt>Time:</dt>
-        //     <dd>
-        //         ${DateHelper.format((data.eventRecord as any).startDate, 'LT')}
-        //     </dd>
-        //     </dl>
-        //     `)
-        // ${data.eventRecord.get('location') ? `<dt>Location:</dt><dd>${(data.eventRecord as any).location}</dd>` : ''}
+            return (`<dl>
+                 <dt>Location:</dt>
+                      ${StringHelper.encodeHtml(task.location)}
+                 <dt>Demand Category:</dt>
+                 <dd>
+                     ${StringHelper.encodeHtml(task.demandCategory)}
+                 </dd>
+                <dt>Start:</dt>
+                 <dd>
+                     ${StringHelper.encodeHtml(task.startDateTime)}
+                 </dd>
+                 </dl>
+                 `)
+        }
+
         // You can also use Tooltip configs here, for example:
         // anchorToTarget : false,
         // trackMouse     : true
@@ -218,7 +268,7 @@ const App: FunctionComponent = () => {
     // https://bryntum.com/docs/gantt/api/Gantt/model/ProjectModel
     const project: ProjectModel | object = {
         // https://bryntum.com/docs/gantt/api/Gantt/model/ProjectModel#working-with-inline-data
-        // inlineData: this should be used to load data externally
+        // inlineData: data,
 
         // this is used only for demo purposes
         autoLoad: true,
@@ -227,6 +277,7 @@ const App: FunctionComponent = () => {
                 url: 'data/launch-saas.json'
             }
         },
+        taskModelClass: MyTaskModel,
         validateResponse: true
     };
 
@@ -262,10 +313,22 @@ const App: FunctionComponent = () => {
     //https://bryntum.com/docs/gantt/#Scheduler/feature/TimeRanges#config-showCurrentTimeLine
     const timeRangesFeature: Partial<TimeRangesConfig> = {
         showCurrentTimeLine: true,
+        currentDateFormat: 'hh:mm a',       // use the format you need
+        enableResizing: false,              // expand drag timeRanges
     };
 
     const scheduleTooltipFeature: Partial<ScheduleTooltipConfig> = {
         disabled: false
+    }
+
+    // disable default project start - end time markers
+    const projectLinesFeature: Partial<ProjectLinesConfig> = {
+        disabled: true
+    }
+
+    // remove weekend layout
+    const nonWorkingTimeFeature: Partial<NonWorkingTimeConfig> ={
+        disabled: true,
     }
 
     return (
@@ -288,6 +351,9 @@ const App: FunctionComponent = () => {
                 // scheduleTooltipFeature ={scheduleTooltipFeature}
                 taskEditFeature={taskEditFeature}
                 taskMenuFeature={taskMenuFeature}
+                projectLinesFeature={projectLinesFeature}
+                onCellClick={({ record }: CellClickData) => { console.log(record.demandCategory)}}
+
             />
             <MySchedulerPro/>
         </Fragment>

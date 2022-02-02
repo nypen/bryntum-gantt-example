@@ -10,6 +10,7 @@
         "name": "Location 1",
         "expanded": true,
         "location": "Location 1",
+        "demandCategory": "Demand Category 1",
         "endDate": "2022-01-18T23:00:00",
         "manuallyScheduled": true,
         "baselines": [
@@ -25,6 +26,7 @@
         "startDate": "2022-01-17",
         "expanded": true,
         "location": "Location 2",
+        "demandCategory": "Demand Category 1",
         "endDate": "2022-01-18",
         "manuallyScheduled": true,
         "baselines": []
@@ -35,6 +37,7 @@
         "startDate": "2022-01-14",
         "expanded": true,
         "location": "Location 3",
+        "demandCategory": "Demand Category 1",
         "endDate": "2022-01-16",
         "manuallyScheduled": true,
         "baselines": []
@@ -47,8 +50,16 @@
     "rows": [
       {
         "id"       : 1,
-        "name"     : "Important date",
-        "startDate": "2022-01-30",
+        "name"     : "Scenario start",
+        "startDate": "2022-01-14T20:15:00",
+        "duration" : 0,
+        "durationUnit" : "d",
+        "cls"      : "b-fa b-fa-diamond"
+      },
+      {
+        "id"       : 2,
+        "name"     : "Scenario start",
+        "startDate": "2022-01-18T20:15:00",
         "duration" : 0,
         "durationUnit" : "d",
         "cls"      : "b-fa b-fa-diamond"
